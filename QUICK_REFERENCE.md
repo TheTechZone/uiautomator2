@@ -110,4 +110,4 @@ d.watcher.when("Skip").click()  # Set up watcher
 d.watcher.start()  # Start watching
 ```
 
-**More comments are welcome. Pull Requests are more than welcome**
+More comments are welcome. **Pull Requests are more than welcome**

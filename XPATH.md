@@ -17,7 +17,7 @@ The code has not been fully tested, so there may still be bugs. Feel free to pro
 
 > Currently, it has been found that lxml only supports XPath 1.0. If you know how to support XPath 2.0, feel free to share.
 
-**Popup Monitoring Principle**
+### Popup Monitoring Principle
 
 Through the hierarchy, we can gather information about all the elements on the screen (including popups and clickable buttons). Let's assume there are two popup buttons: `Skip` and `Got it`. The button we want to click is `Play`.
 
@@ -131,7 +131,7 @@ Advanced Search Syntax
 ((d.xpath("NFC") | d.xpath("@android:id/item")) & d.xpath("//android.widget.TextView")).get()
 ```
 
-### Operations with `XMLElement` ###
+### Operations with `XMLElement`
 
 ```python
 # The object returned by XPathSelector.get() is called XMLElement
@@ -203,7 +203,7 @@ d.xpath('@com.taobao.taobao:id/dx_root').scroll(Direction.HORIZ_FORWARD)
 d.xpath('@com.taobao.taobao:id/dx_root').scroll_to("Place Order", Direction.HORIZ_FORWARD)
 ```
 
-**A More Complete Example**
+A More Complete Example
 
 ```python
 import uiautomator2 as u2
@@ -260,6 +260,7 @@ def main():
 ```
 
 ### `PageSource` Object
+
 > Added in version 3.1
 
 This is an advanced usage, but this object is the most basic; almost all functions depend on it.
@@ -294,26 +295,27 @@ els = set(es1) & set(es2)
 ```
 
 ## XPath Rules
+
 To write scripts faster, we have customized some simplified XPath rules.
 
-**Rule 1**
+- **Rule 1**
 
 `//` at the start represents the native XPath
 
-**Rule 2**
+- **Rule 2**
 
 `@` at the start represents resourceId positioning
 
-`@smartisanos:id/right_container` is equivalent to 
+`@smartisanos:id/right_container` is equivalent to
 `//*[@resource-id="smartisanos:id/right_container"]`
 
-**Rule 3**
+- **Rule 3**
 
 `^` at the start represents regular expressions
 
 `^.*Got it` is equivalent to `//*[re:match(text(), '^.*Got it')]`
 
-**Rule 4**
+- **Rule 4**
 
 > Inspired by SQL "like"
 
@@ -323,17 +325,19 @@ To write scripts faster, we have customized some simplified XPath rules.
 
 `%Know%` matches text containing `Know`, equivalent to `//*[contains(text(), 'Know')]`
 
-**Rule Last**
+- **Rule Last**
 
 Matches text and description fields.
 
 For example, `Search` is equivalent to XPath `//*[@text="Search" or @content-desc="Search" or @resource-id="Search"]`
 
 ## Special Notes
+
 - Sometimes className may contain `$@#&` characters, which are illegal in XML, so they are all replaced with `.`
 
 ## Some Advanced XPath Usages
-```
+
+```python
 # All elements
 //*
 
@@ -354,6 +358,7 @@ For example, `Search` is equivalent to XPath `//*[@text="Search" or @content-des
 ```
 
 ## Some Useful Websites
+
 - [XPath playground](https://scrapinghub.github.io/xpath-playground/)
 - [Advanced XPath Usage on Jianshu](https://www.jianshu.com/p/4fef4142b33f)
 - [XPath Quicksheet](https://devhints.io/xpath)
