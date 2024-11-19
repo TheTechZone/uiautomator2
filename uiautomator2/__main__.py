@@ -11,9 +11,8 @@ import sys
 import adbutils
 
 import uiautomator2 as u2
-from uiautomator2.version import __version__
 from uiautomator2 import enable_pretty_logging
-
+from uiautomator2.version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +111,7 @@ def cmd_version(args):
 def cmd_console(args):
     import code
     import platform
-    
+
     d = u2.connect(args.serial)
     model = d.shell("getprop ro.product.model").output.strip()
     serial = d.serial
@@ -122,7 +121,10 @@ def cmd_console(args):
 
         c = get_config()
         c.InteractiveShellEmbed.colors = "neutral"
-        IPython.embed(config=c, header=f"IPython is ready, uiautomator2: {__version__}, try d.info")
+        IPython.embed(
+            config=c,
+            header=f"IPython is ready, uiautomator2: {__version__}, try d.info",
+        )
     except ImportError:
         _vars = globals().copy()
         _vars.update(locals())

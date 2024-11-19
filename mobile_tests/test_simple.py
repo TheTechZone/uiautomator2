@@ -23,9 +23,9 @@ def test_toast_get_message(dev: u2.Device):
         d(text="Show Short Notification").click()
     except u2.UiObjectNotFoundError:
         d(text="SHOW SHORT NOTIFICATION").click()
-    #self.assertEqual(d.toast.get_message(2, 5, ""), "Short notification")
+    # self.assertEqual(d.toast.get_message(2, 5, ""), "Short notification")
     assert "Short notification" in d.toast.get_message(2, 5, "")
-    time.sleep(.5)
+    time.sleep(0.5)
     assert d.toast.get_message(0, 0.4)
 
 
@@ -48,8 +48,8 @@ def test_watchers(self):
 
     d(text="App").click()
     d.xpath("Notification").wait()
-    
-    d.watcher("N").when('Notification').click()
+
+    d.watcher("N").when("Notification").click()
     d.watcher.run()
 
     self.assertTrue(d(text="Status Bar").wait(timeout=3))
@@ -74,19 +74,26 @@ def test_watchers(self):
 @pytest.mark.skip("TODO:: not fixed")
 def test_count(self):
     d = self.sess
-    count = d(resourceId="android:id/list").child(
-        className="android.widget.TextView").count
+    count = (
+        d(resourceId="android:id/list").child(className="android.widget.TextView").count
+    )
     self.assertEqual(count, 11)
-    self.assertEqual(
-        d(resourceId="android:id/list").info['childCount'], 11)
-    count = d(resourceId="android:id/list").child(
-        className="android.widget.TextView", instance=0).count
+    self.assertEqual(d(resourceId="android:id/list").info["childCount"], 11)
+    count = (
+        d(resourceId="android:id/list")
+        .child(className="android.widget.TextView", instance=0)
+        .count
+    )
     self.assertEqual(count, 1)
+
 
 def test_get_text(dev):
     d = dev
-    text = d(resourceId="android:id/list").child(
-        className="android.widget.TextView", text="App").get_text()
+    text = (
+        d(resourceId="android:id/list")
+        .child(className="android.widget.TextView", text="App")
+        .get_text()
+    )
     assert text == "App"
 
 
@@ -112,16 +119,16 @@ def test_implicitly_wait(d):
     # getText may take 1~2s
     assert time_used < 2 + 3
 
+
 @pytest.mark.skip("TODO:: not fixed")
 def test_select_iter(d):
-    d(text='OS').click()
-    texts = d(resourceId='android:id/list').child(
-        className='android.widget.TextView')
+    d(text="OS").click()
+    texts = d(resourceId="android:id/list").child(className="android.widget.TextView")
     assert texts.count == 4
     words = []
     for item in texts:
         words.append(item.get_text())
-    assert words == ['Morse Code', 'Rotation Vector', 'Sensors', 'SMS Messaging']
+    assert words == ["Morse Code", "Rotation Vector", "Sensors", "SMS Messaging"]
 
 
 @pytest.mark.skip("Deprecated")
@@ -133,18 +140,21 @@ def test_plugin(self):
         return _inner
 
     u2.plugin_clear()
-    u2.plugin_register('my', _my_plugin, 'pp')
-    self.assertEqual(self.d.ext_my(), 'pp')
+    u2.plugin_register("my", _my_plugin, "pp")
+    self.assertEqual(self.d.ext_my(), "pp")
+
 
 def test_send_keys(dev):
     d = dev
     d.xpath("App").click()
     d.xpath("Search").click()
     d.xpath('//*[@text="Invoke Search"]').click()
-    d.xpath('@io.appium.android.apis:id/txt_query_prefill').click()
+    d.xpath("@io.appium.android.apis:id/txt_query_prefill").click()
     d.send_keys("hello", clear=True)
-    assert d.xpath('io.appium.android.apis:id/txt_query_prefill').info['text'] == 'hello'
+    assert (
+        d.xpath("io.appium.android.apis:id/txt_query_prefill").info["text"] == "hello"
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

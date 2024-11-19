@@ -19,13 +19,17 @@ def test_list2cmdline():
     ]
     for args, expect in testdata:
         cmdline = utils.list2cmdline(args)
-        assert cmdline == expect, "Args: %s, Expect: %s, Got: %s" % (args, expect, cmdline)
+        assert cmdline == expect, "Args: %s, Expect: %s, Got: %s" % (
+            args,
+            expect,
+            cmdline,
+        )
 
 
 def test_inject_call():
     def foo(a, b, c=2):
-        return a*100+b*10+c
-    
+        return a * 100 + b * 10 + c
+
     ret = utils.inject_call(foo, a=2, b=4)
     assert ret == 242
 
@@ -40,9 +44,9 @@ def test_threadsafe_wrapper():
         @utils.thread_safe_wrapper
         def call(self):
             v = self.n
-            time.sleep(.5)
+            time.sleep(0.5)
             self.n = v + 1
-    
+
     a = A()
     th1 = threading.Thread(name="th1", target=a.call)
     th2 = threading.Thread(name="th2", target=a.call)
@@ -50,7 +54,7 @@ def test_threadsafe_wrapper():
     th2.start()
     th1.join()
     th2.join()
-    
+
     assert 2 == a.n
 
 
@@ -69,15 +73,15 @@ def test_is_version_compatiable():
 def test_naturalsize():
     assert utils.natualsize(1) == "0.0 KB"
     assert utils.natualsize(1024) == "1.0 KB"
-    assert utils.natualsize(1<<20) == "1.0 MB"
-    assert utils.natualsize(1<<30) == "1.0 GB"
+    assert utils.natualsize(1 << 20) == "1.0 MB"
+    assert utils.natualsize(1 << 30) == "1.0 GB"
 
 
 def test_image_convert():
     im = Image.new("RGB", (100, 100))
     im2 = utils.image_convert(im, "pillow")
     assert isinstance(im2, Image.Image)
-    
+
     with pytest.raises(ValueError):
         utils.image_convert(im, "unknown")
 

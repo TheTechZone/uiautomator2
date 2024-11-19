@@ -2,6 +2,7 @@
 # author: codeskyblue
 
 import pytest
+
 import uiautomator2 as u2
 
 
@@ -10,7 +11,7 @@ def d():
     _d = u2.connect_usb()
     _d.press("home")
     yield _d
-    
+
 
 @pytest.fixture(scope="function")
 def app(d: u2.Device):

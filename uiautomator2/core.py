@@ -7,30 +7,42 @@
 import atexit
 import datetime
 import hashlib
+import json
+import logging
 import os
 import threading
 import time
-import logging
-import json
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import adbutils
 import requests
 
-from uiautomator2.exceptions import HTTPTimeoutError, RPCInvalidError, RPCStackOverflowError, UiAutomationNotConnectedError, HTTPError, LaunchUiAutomationError, UiObjectNotFoundError, RPCUnknownError, APKSignatureError, AccessibilityServiceAlreadyRegisteredError
 from uiautomator2.abstract import AbstractUiautomatorServer
+from uiautomator2.exceptions import (
+    AccessibilityServiceAlreadyRegisteredError,
+    APKSignatureError,
+    HTTPError,
+    HTTPTimeoutError,
+    LaunchUiAutomationError,
+    RPCInvalidError,
+    RPCStackOverflowError,
+    RPCUnknownError,
+    UiAutomationNotConnectedError,
+    UiObjectNotFoundError,
+)
 from uiautomator2.utils import is_version_compatiable
 from uiautomator2.version import __apk_version__
 
-
 logger = logging.getLogger(__name__)
+
 
 class MockAdbProcess:
     def __init__(self, conn: adbutils.AdbConnection) -> None:
         self._conn = conn
         self._event = threading.Event()
         self._output = bytearray()
+
         def wait_finished():
             try:
                 while chunk := self._conn.conn.recv(1024):
@@ -39,15 +51,15 @@ class MockAdbProcess:
             except:
                 pass
             self._event.set()
-        
+
         t = threading.Thread(target=wait_finished)
         t.daemon = True
         t.name = "wait_adb_conn"
         t.start()
-    
+
     @property
     def output(self) -> bytes:
-        """ subprocess do not have this property """
+        """subprocess do not have this property"""
         return self._output
 
     def wait(self) -> bool:
@@ -75,7 +87,7 @@ def launch_uiautomator(dev: adbutils.AdbDevice) -> MockAdbProcess:
 class HTTPResponse:
     def __init__(self, content: bytes) -> None:
         self.content = content
-    
+
     def json(self):
         return json.loads(self.content)
 
@@ -84,7 +96,14 @@ class HTTPResponse:
         return self.content.decode("utf-8", errors="ignore")
 
 
-def _http_request(dev: adbutils.AdbDevice, method: str, path: str, data: Dict[str, Any] = None, timeout=10, print_request: bool = False) -> HTTPResponse:
+def _http_request(
+    dev: adbutils.AdbDevice,
+    method: str,
+    path: str,
+    data: Dict[str, Any] = None,
+    timeout: float = 10.0,
+    print_request: bool = False,
+) -> HTTPResponse:
     """Send http request to uiautomator2 server"""
     try:
         logger.debug("http request %s %s %s", method, path, data)
@@ -109,7 +128,9 @@ def _http_request(dev: adbutils.AdbDevice, method: str, path: str, data: Dict[st
             current_time = end_time.strftime("%H:%M:%S.%f")[:-3]
             print(f"{current_time} Response >>>")
             print(response.text.rstrip())
-            print(f"<<< END timed_used = %.3f\n" % (end_time - start_time).total_seconds())
+            print(
+                f"<<< END timed_used = %.3f\n" % (end_time - start_time).total_seconds()
+            )
         return response
     except requests.Timeout as e:
         raise HTTPTimeoutError(f"HTTP request timeout: {e}") from e
@@ -117,28 +138,31 @@ def _http_request(dev: adbutils.AdbDevice, method: str, path: str, data: Dict[st
         raise HTTPError(f"HTTP request failed: {e}") from e
 
 
-def _jsonrpc_call(dev: adbutils.AdbDevice, method: str, params: Any, timeout: float, print_request: bool) -> Any:
+def _jsonrpc_call(
+    dev: adbutils.AdbDevice,
+    method: str,
+    params: Any,
+    timeout: float,
+    print_request: bool,
+) -> Any:
     """Send jsonrpc call to uiautomator2 server
-    
+
     Raises:
         UiAutomationError
     """
-    payload = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": method,
-        "params": params
-    }
-    r = _http_request(dev, "POST", "/jsonrpc/0", payload, timeout=timeout, print_request=print_request)
+    payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params}
+    r = _http_request(
+        dev, "POST", "/jsonrpc/0", payload, timeout=timeout, print_request=print_request
+    )
     data = r.json()
     if not isinstance(data, dict):
         raise RPCInvalidError("Unknown RPC error: not a dict")
-    
+
     if isinstance(data, dict) and "error" in data:
         logger.debug("jsonrpc error: %s", data)
-        code = data['error'].get('code')
-        message = data['error'].get('message', '')
-        stacktrace = data['error'].get('data')
+        code = data["error"].get("code")
+        message = data["error"].get("message", "")
+        stacktrace = data["error"].get("data")
         if "UiAutomation not connected" in r.text:
             raise UiAutomationNotConnectedError("UiAutomation not connected")
         if "android.os.DeadObjectException" in message:
@@ -149,27 +173,34 @@ def _jsonrpc_call(dev: adbutils.AdbDevice, method: str, params: Any, timeout: fl
         if "uiautomator.UiObjectNotFoundException" in message:
             raise UiObjectNotFoundError(code, message, params)
         if "java.lang.StackOverflowError" in message:
-            raise RPCStackOverflowError(f"StackOverflowError: {message}", params, stacktrace[:1000] + "..." + stacktrace[-1000:])
-        raise RPCUnknownError(f"Unknown RPC error: {code} {message}", params, stacktrace)
-    
+            raise RPCStackOverflowError(
+                f"StackOverflowError: {message}",
+                params,
+                stacktrace[:1000] + "..." + stacktrace[-1000:],
+            )
+        raise RPCUnknownError(
+            f"Unknown RPC error: {code} {message}", params, stacktrace
+        )
+
     if "result" not in data:
         raise RPCInvalidError("Unknown RPC error: no result field")
     return data["result"]
 
 
 class BasicUiautomatorServer(AbstractUiautomatorServer):
-    """ Simple uiautomator2 server client
+    """Simple uiautomator2 server client
     this is runs without atx-agent
     """
-    _lock = threading.Lock() # thread safe lock
-    
+
+    _lock = threading.Lock()  # thread safe lock
+
     def __init__(self, dev: adbutils.AdbDevice) -> None:
         self._dev = dev
         self._process = None
         self._debug = False
         self.start_uiautomator()
         atexit.register(self.stop_uiautomator, wait=False)
-    
+
     @property
     def debug(self) -> bool:
         return self._debug
@@ -203,9 +234,11 @@ class BasicUiautomatorServer(AbstractUiautomatorServer):
         else:
             logger.debug("push %s -> %s", jar_path, target_path)
             self._dev.sync.push(jar_path, target_path, check=True)
-    
-    def _check_device_file_hash(self, local_file: Union[str, Path], remote_file: str) -> bool:
-        """ check if remote file hash is correct """
+
+    def _check_device_file_hash(
+        self, local_file: Union[str, Path], remote_file: str
+    ) -> bool:
+        """check if remote file hash is correct"""
         md5 = hashlib.md5()
         with open(local_file, "rb") as f:
             md5.update(f.read())
@@ -217,7 +250,7 @@ class BasicUiautomatorServer(AbstractUiautomatorServer):
     def _wait_ready(self, launch_timeout=30):
         """Wait until uiautomator2 server is ready"""
         self._wait_app_process_ready(launch_timeout)
-    
+
     def _wait_app_process_ready(self, timeout: float):
         """
         ERROR1:
@@ -228,10 +261,10 @@ class BasicUiautomatorServer(AbstractUiautomatorServer):
             [server] INFO: [UiAutomator2Server] Starting Server
             SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
             SLF4J: Defaulting to no-operation (NOP) logger implementation
-            SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+            SLF4J: See https://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
         """
         deadline = time.time() + timeout
-        output_buffer = ''
+        output_buffer = ""
         while time.time() < deadline:
             output = self._process.output.decode("utf-8", errors="ignore")
             output_buffer += output
@@ -241,7 +274,7 @@ class BasicUiautomatorServer(AbstractUiautomatorServer):
                 raise LaunchUiAutomationError("server quit unexpectly", output_buffer)
             if self._check_alive():
                 return
-            time.sleep(.5)
+            time.sleep(0.5)
         raise LaunchUiAutomationError("server not ready", output_buffer)
 
     def _check_alive(self) -> bool:
@@ -250,7 +283,7 @@ class BasicUiautomatorServer(AbstractUiautomatorServer):
             return response.content == b"pong"
         except HTTPError:
             return False
-    
+
     def stop_uiautomator(self, wait=True):
         with self._lock:
             if self._process:
@@ -262,7 +295,7 @@ class BasicUiautomatorServer(AbstractUiautomatorServer):
             while time.time() < deadline:
                 if not self._check_alive():
                     return
-                time.sleep(.5)
+                time.sleep(0.5)
 
     def jsonrpc_call(self, method: str, params: Any = None, timeout: float = 10) -> Any:
         """Send jsonrpc call to uiautomator2 server"""

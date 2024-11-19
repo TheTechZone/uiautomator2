@@ -32,16 +32,16 @@ class OCR(object):
             raise EnvironmentError("set API var before using OCR")
 
     def all(self):
-        rawdata = self._d.screenshot(format='raw')
+        rawdata = self._d.screenshot(format="raw")
         r = requests.post(API, files={"file": ("tmp.jpg", rawdata)})
         r.raise_for_status()
         resp = r.json()
-        assert resp['success']
+        assert resp["success"]
         result = []
-        for item in resp['data']:
-            lx, ly, rx, ry = item['coords']
+        for item in resp["data"]:
+            lx, ly, rx, ry = item["coords"]
             x, y = (lx + rx) // 2, (ly + ry) // 2
-            ocr_text = item['text']
+            ocr_text = item["text"]
             result.append((ocr_text, x, y))
         result.sort(key=lambda v: (v[2], v[1]))
         return result
@@ -59,7 +59,7 @@ class OCRSelector(object):
 
     def all(self):
         result = []
-        for (ocr_text, x, y) in self._server.all():
+        for ocr_text, x, y in self._server.all():
             matched = False
             if self._text == ocr_text:  # exactly match
                 matched = True
@@ -73,10 +73,10 @@ class OCRSelector(object):
         """
         Args:
             timeout: seconds to wait
-        
+
         Returns:
             List of recognition (text, x, y)
-            
+
         Raises:
             OCRObjectNotFound
         """
@@ -95,7 +95,7 @@ class OCRSelector(object):
         self._d.click(x, y)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import uiautomator2 as u2
     import uiautomator2.ext.ocr as ocr
 

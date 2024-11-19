@@ -12,14 +12,13 @@ import re
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from PIL import Image
 from lxml import etree
+from PIL import Image
 
 from uiautomator2._proto import Direction
 from uiautomator2.abstract import AbstractXPathBasedDevice
 from uiautomator2.exceptions import XPathElementNotFoundError
-from uiautomator2.utils import inject_call, swipe_in_bounds, deprecated
-
+from uiautomator2.utils import deprecated, inject_call, swipe_in_bounds
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +31,10 @@ class XPathError(Exception):
     """basic error for xpath plugin"""
 
 
-
 def safe_xmlstr(s: str) -> str:
-    s = re.sub('[$@#&]', '.', s)
-    s = re.sub('\\.+', '.', s)
-    s = re.sub('^\\.|\\.$', '', s)
+    s = re.sub("[$@#&]", ".", s)
+    s = re.sub("\\.+", ".", s)
+    s = re.sub("^\\.|\\.$", "", s)
     return s
 
 
@@ -66,9 +64,9 @@ def convert_to_camel_case(s: str) -> str:
     Example:
         "hello-world" -> "helloWorld"
     """
-    parts = s.split('-')
+    parts = s.split("-")
     # Convert the first letter of each part to uppercase, except for the first part
-    camel_case_str = parts[0] + ''.join(part.capitalize() for part in parts[1:])
+    camel_case_str = parts[0] + "".join(part.capitalize() for part in parts[1:])
     return camel_case_str
 
 
@@ -121,23 +119,23 @@ class XPath(str):
             return functools.reduce(lambda a, b: a.joinpath(b), args, XPath(xpath))
         else:
             return super().__new__(cls, xpath)
-    
-    def __repr__(self):
-        return f'XPath({super().__repr__()})'
 
-    def __and__(self, value: 'XPath') -> 'XPathSelector':
+    def __repr__(self):
+        return f"XPath({super().__repr__()})"
+
+    def __and__(self, value: "XPath") -> "XPathSelector":
         raise NotImplementedError
 
     def joinpath(self, subpath: str) -> "XPath":
-        if not subpath.startswith('/'):
-            subpath = '/' + subpath
+        if not subpath.startswith("/"):
+            subpath = "/" + subpath
         return XPath(self + subpath)
-    
+
 
 class PageSource:
     def __init__(self, xml_content: str):
         self._xml_content = xml_content
-    
+
     @staticmethod
     def parse(data: Optional[Union[str, "PageSource"]]) -> Optional["PageSource"]:
         if not data:
@@ -145,7 +143,7 @@ class PageSource:
         if isinstance(data, str):
             return PageSource(data)
         return data
-    
+
     @functools.cached_property
     def root(self) -> etree._Element:
         _root = etree.fromstring(str2bytes(self._xml_content))
@@ -154,7 +152,9 @@ class PageSource:
         return _root
 
     def find_elements(self, xpath: Union[str, XPath]) -> List["XMLElement"]:
-        matches = self.root.xpath(xpath, namespaces={"re": "http://exslt.org/regular-expressions"})
+        matches = self.root.xpath(
+            xpath, namespaces={"re": "http://exslt.org/regular-expressions"}
+        )
         return [XMLElement(node) for node in matches]
 
 
@@ -227,7 +227,7 @@ class XPathEntry(object):
             left_time = max(0, deadline - time.time())
             time.sleep(min(0.5, left_time))
 
-    def click(self, xpath: Union[str, list], timeout: float=None):
+    def click(self, xpath: Union[str, list], timeout: float = None):
         """
         Find element and perform click
 
@@ -274,23 +274,30 @@ class XPathEntry(object):
             self._d.swipe_ext(direction, 0.5)
         return False
 
-    def __call__(self, xpath: str, source: Union[str, PageSource] = None) -> "XPathSelector":
+    def __call__(
+        self, xpath: str, source: Union[str, PageSource] = None
+    ) -> "XPathSelector":
         return XPathSelector(xpath, self, PageSource.parse(source))
 
 
 class Operator(str, enum.Enum):
-    AND = 'AND'
-    OR = 'OR'
+    AND = "AND"
+    OR = "OR"
 
 
 class AbstractSelector(abc.ABC):
     @abc.abstractmethod
-    def all(self, source: PageSource) -> List['XMLElement']:
+    def all(self, source: PageSource) -> List["XMLElement"]:
         pass
-    
+
 
 class XPathSelector(AbstractSelector):
-    def __init__(self, xpath: Union[str, XPath, AbstractSelector], parent: XPathEntry = None, source: Optional[PageSource] = None):
+    def __init__(
+        self,
+        xpath: Union[str, XPath, AbstractSelector],
+        parent: XPathEntry = None,
+        source: Optional[PageSource] = None,
+    ):
         self._base_xpath = XPath(xpath) if isinstance(xpath, str) else xpath
         self._operator: Operator = None
         self._next_xpath: AbstractSelector = None
@@ -299,41 +306,41 @@ class XPathSelector(AbstractSelector):
         self._source = source
         self._last_source: Optional[PageSource] = None
         self._fallback: callable = None
-    
+
     def copy(self) -> "XPathSelector":
         """copy self"""
         return copy.copy(self)
-    
+
     @classmethod
-    def create(cls, value: Union[str, XPath, 'XPathSelector']) -> 'XPathSelector':
+    def create(cls, value: Union[str, XPath, "XPathSelector"]) -> "XPathSelector":
         if isinstance(value, XPathSelector):
             return value.copy()
         elif isinstance(value, (str, XPath)):
             return XPathSelector(XPath(value))
         else:
-            raise ValueError('Invalid value', value)
+            raise ValueError("Invalid value", value)
 
     def __repr__(self):
         if self._operator:
-            return f'XPathSelector({repr(self._base_xpath)} {self._operator.value} {repr(self._next_xpath)})'
+            return f"XPathSelector({repr(self._base_xpath)} {self._operator.value} {repr(self._next_xpath)})"
         else:
-            return f'XPathSelector({repr(self._base_xpath)})'
-    
-    def __and__(self, value) -> 'XPathSelector':
+            return f"XPathSelector({repr(self._base_xpath)})"
+
+    def __and__(self, value) -> "XPathSelector":
         s = XPathSelector(self)
         s._next_xpath = XPathSelector.create(value)
         s._operator = Operator.AND
         s._parent = self._parent
         return s
 
-    def __or__(self, value) -> 'XPathSelector':
+    def __or__(self, value) -> "XPathSelector":
         s = XPathSelector(self)
         s._next_xpath = XPathSelector.create(value)
         s._operator = Operator.OR
         s._parent = self._parent
         return s
 
-    def xpath(self, _xpath: Union[list, tuple, str]) -> 'XPathSelector':
+    def xpath(self, _xpath: Union[list, tuple, str]) -> "XPathSelector":
         """
         add xpath to condition list
         the element should match all conditions
@@ -350,7 +357,9 @@ class XPathSelector(AbstractSelector):
         add child xpath
         """
         if self._operator or not isinstance(self._base_xpath, XPath):
-            raise XPathError("can't use child when base is not XPath or operator is set")
+            raise XPathError(
+                "can't use child when base is not XPath or operator is set"
+            )
         new = self.copy()
         new._base_xpath = self._base_xpath.joinpath(_xpath)
         return new
@@ -361,7 +370,7 @@ class XPathSelector(AbstractSelector):
         """
         if not callable(func):
             raise ValueError('func should be "click" or callable function')
-    
+
         assert callable(func)
         new = self.copy()
         new._fallback = func
@@ -369,7 +378,9 @@ class XPathSelector(AbstractSelector):
 
     @property
     def _global_timeout(self) -> float:
-        if hasattr(self._parent, "wait_timeout") and isinstance(self._parent.wait_timeout, (int, float)):
+        if hasattr(self._parent, "wait_timeout") and isinstance(
+            self._parent.wait_timeout, (int, float)
+        ):
             return self._parent.wait_timeout
         return 20.0
 
@@ -379,7 +390,7 @@ class XPathSelector(AbstractSelector):
         if not self._parent:
             raise XPathError("self._parent is not set")
         return self._parent.get_page_source()
-    
+
     def all(self, source: Optional[PageSource] = None) -> List["XMLElement"]:
         """find all matched elements"""
         if not source:
@@ -447,7 +458,7 @@ class XPathSelector(AbstractSelector):
         self._parent._d.send_keys(text)
 
     def wait(self, timeout=None) -> bool:
-        """ wait until element found """
+        """wait until element found"""
         deadline = time.time() + (timeout or self._global_timeout)
         while True:
             if self.exists:
@@ -512,7 +523,7 @@ class XPathSelector(AbstractSelector):
         """take element screenshot"""
         el = self.get()
         return el.screenshot()
-    
+
     def __getattr__(self, key: str):
         """
         In IPython console, attr:_ipython_canary_method_should_not_exist_ will be called
@@ -723,8 +734,19 @@ class XMLElement(object):
         for k, v in dict(self.attrib).items():
             if k in ("bounds", "class", "package", "content-desc"):
                 continue
-            if k in ("checkable", "checked", "clickable", "enabled", "focusable", "focused", "scrollable",
-                     "long-clickable", "password", "selected", "visible-to-user"):
+            if k in (
+                "checkable",
+                "checked",
+                "clickable",
+                "enabled",
+                "focusable",
+                "focused",
+                "scrollable",
+                "long-clickable",
+                "password",
+                "selected",
+                "visible-to-user",
+            ):
                 ret[convert_to_camel_case(k)] = v == "true"
             elif k == "index":
                 ret[k] = int(v)

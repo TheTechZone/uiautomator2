@@ -14,7 +14,6 @@ from logzero import logger
 
 import uiautomator2 as u2
 
-
 CLICK = "click"
 # swipe
 SWIPE_UP = "swipe_up"
@@ -41,21 +40,22 @@ def split_step(text: str):
 
     for keyword in __alias.keys():
         if text.startswith(keyword):
-            body = text[len(keyword):].strip()
+            body = text[len(keyword) :].strip()
             return __alias.get(keyword, keyword), body
     else:
         raise RuntimeError("Step unable to parse", text)
 
 
-def read_file_content(path: str, mode:str = "r") -> str:
+def read_file_content(path: str, mode: str = "r") -> str:
     with open(path, mode) as f:
         return f.read()
+
 
 def run_step(cf: bunch.Bunch, app: u2.Device, step: str):
     logger.info("Step: %s", step)
     oper, body = split_step(step)
     logger
-    
+
     logger = logging.getLogger(__name__).debug("parse as: %s %s", oper, body)
 
     if oper == CLICK:
@@ -72,11 +72,11 @@ def run_step(cf: bunch.Bunch, app: u2.Device, step: str):
 
     elif oper == SCREENSHOT:
         output_dir = "./output"
-        filename = "screen-%d.jpg" % int(time.time()*1000)
+        filename = "screen-%d.jpg" % int(time.time() * 1000)
         if body:
             filename = body
         name_noext, ext = os.path.splitext(filename)
-        if ext.lower() not in ['.jpg', '.jpeg', '.png']:
+        if ext.lower() not in [".jpg", ".jpeg", ".png"]:
             ext = ".jpg"
         os.makedirs(cf.output_directory, exist_ok=True)
         filename = os.path.join(cf.output_directory, name_noext + ext)
@@ -87,7 +87,7 @@ def run_step(cf: bunch.Bunch, app: u2.Device, step: str):
         assert app.xpath(body).wait(), body
 
     elif oper == WAIT:
-        #if re.match("^[\d\.]+$")
+        # if re.match("^[\d\.]+$")
         if body.isdigit():
             seconds = int(body)
             logger.info("Sleep %d seconds", seconds)
@@ -97,7 +97,7 @@ def run_step(cf: bunch.Bunch, app: u2.Device, step: str):
 
     else:
         raise RuntimeError("Unhandled operation", oper)
-    
+
 
 def run_conf(d, conf_filename: str):
     d.healthcheck()
@@ -118,7 +118,9 @@ def run_conf(d, conf_filename: str):
     print("Author:", cf.author)
     print("Description:", cf.description)
     print("Package:", cf.package)
-    logger.debug("action_delay: %.1f / %.1f", cf.action_before_delay, cf.action_after_delay)
+    logger.debug(
+        "action_delay: %.1f / %.1f", cf.action_before_delay, cf.action_after_delay
+    )
 
     app = d.session(cf.package)
     for step in cf.steps:
@@ -133,16 +135,18 @@ def run_conf(d, conf_filename: str):
 device = None
 conf_filename = None
 
+
 def test_entry():
     pass
-
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--command", help="run single step command")
     parser.add_argument("-s", "--serial", help="run single step command")
-    parser.add_argument("conf_filename", default="test.yml", nargs="?", help="config filename")
+    parser.add_argument(
+        "conf_filename", default="test.yml", nargs="?", help="config filename"
+    )
     args = parser.parse_args()
 
     d = u2.connect(args.serial)

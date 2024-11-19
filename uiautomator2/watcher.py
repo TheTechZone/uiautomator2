@@ -10,8 +10,8 @@ from collections import OrderedDict
 from typing import List, Optional
 
 import uiautomator2
-from uiautomator2.xpath import PageSource, XPathEntry, XPathSelector
 from uiautomator2.utils import inject_call
+from uiautomator2.xpath import PageSource, XPathEntry, XPathSelector
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class WatchContext:
             self.when("ALLOW").click()
 
     def wait_stable(self, seconds: float = 5.0, timeout: float = 60.0):
-        """ wait until watches not triggered
+        """wait until watches not triggered
         Args:
             seconds: stable seconds
             timeout: raise error when wait stable timeout
@@ -61,11 +61,11 @@ class WatchContext:
             with self.__lock:
                 if time.time() - self.__trigger_time > seconds:
                     return True
-            time.sleep(.2)
+            time.sleep(0.2)
         raise TimeoutError("Unstable")
 
     def when(self, xpath: str):
-        """ 当条件满足时,支持 .when(..).when(..) 的级联模式"""
+        """当条件满足时,支持 .when(..).when(..) 的级联模式"""
         self.__xpath_list.append(xpath)
         return self
 
@@ -124,17 +124,17 @@ class WatchContext:
         self.__stop.clear()
         self.__stopped.clear()
         interval = 2.0  # 检查周期
-        threading.Thread(target=self._run_forever,
-                         daemon=True,
-                         args=(interval, )).start()
+        threading.Thread(
+            target=self._run_forever, daemon=True, args=(interval,)
+        ).start()
 
     def stop(self):
         self.__stop.set()
         self.__stopped.wait(timeout=10)
         self.__started = False
-    
+
     def close(self):
-        """ alias of stop """
+        """alias of stop"""
         self.stop()
 
     def __enter__(self):
@@ -145,7 +145,7 @@ class WatchContext:
         self.stop()
 
 
-class Watcher():
+class Watcher:
     def __init__(self, d: "uiautomator2.Device"):
         self._d = d
         self._watchers = []
@@ -166,20 +166,20 @@ class Watcher():
         return XPathWatcher(self, xpath)
 
     def start(self, interval: float = 2.0):
-        """ stop watcher """
+        """stop watcher"""
         if self._watching:
             logger.warning("already started")
             return
         self._watching = True
-        th = threading.Thread(name="watcher",
-                              target=self._watch_forever,
-                              args=(interval, ))
+        th = threading.Thread(
+            name="watcher", target=self._watch_forever, args=(interval,)
+        )
         th.daemon = True
         th.start()
         return th
 
     def stop(self):
-        """ stop watcher """
+        """stop watcher"""
         if not self._watching:
             logger.warning("watch already stopped")
             return
@@ -196,7 +196,7 @@ class Watcher():
         self._watch_stop_event.clear()
 
     def reset(self):
-        """ stop watching and remove all watchers """
+        """stop watching and remove all watchers"""
         if self._watching:
             self.stop()
         self.remove()
@@ -218,7 +218,7 @@ class Watcher():
             self._watch_stop_event.set()
 
     def run(self, source: Optional[PageSource] = None):
-        """ run watchers
+        """run watchers
         Args:
             source: hierarchy content
         """
@@ -239,16 +239,16 @@ class Watcher():
 
         for h in self._watchers:
             last_selector = None
-            for xpath in h['xpaths']:
+            for xpath in h["xpaths"]:
                 last_selector = self._xpath(xpath, source)
                 if not last_selector.exists:
                     last_selector = None
                     break
 
             if last_selector:
-                logger.info("XPath(hook:%s): %s", h['name'], h['xpaths'])
+                logger.info("XPath(hook:%s): %s", h["name"], h["xpaths"])
                 self._triggering = True
-                cb = h['callback']
+                cb = h["callback"]
                 defaults = {
                     "selector": last_selector,
                     "d": self._d,
@@ -257,7 +257,8 @@ class Watcher():
                 st = inspect.signature(cb)
                 kwargs = {
                     key: defaults[key]
-                    for key in st.parameters.keys() if key in defaults
+                    for key in st.parameters.keys()
+                    if key in defaults
                 }
                 ba = st.bind(**kwargs)
                 ba.apply_defaults()
@@ -274,18 +275,18 @@ class Watcher():
         return XPathWatcher(self, None, name)
 
     def remove(self, name=None):
-        """ remove watcher """
+        """remove watcher"""
         if name is None:
             self._watchers = []
             return
         for w in self._watchers[:]:
-            if w['name'] == name:
-                logger.debug("remove(%s) %s", name, w['xpaths'])
+            if w["name"] == name:
+                logger.debug("remove(%s) %s", name, w["xpaths"])
                 self._watchers.remove(w)
 
 
-class XPathWatcher():
-    def __init__(self, parent: Watcher, xpath: str, name: str = ''):
+class XPathWatcher:
+    def __init__(self, parent: Watcher, xpath: str, name: str = ""):
         self._name = name
         self._parent = parent
         self._xpath_list: List[str] = [xpath] if xpath else []
@@ -299,11 +300,13 @@ class XPathWatcher():
         func accept argument, key(d, el)
         d=self._d, el=element
         """
-        self._parent._watchers.append({
-            "name": self._name,
-            "xpaths": self._xpath_list,
-            "callback": func,
-        })
+        self._parent._watchers.append(
+            {
+                "name": self._name,
+                "xpaths": self._xpath_list,
+                "callback": func,
+            }
+        )
 
     def click(self):
         def _inner_click(selector: XPathSelector):
@@ -318,6 +321,7 @@ class XPathWatcher():
             "search", "enter", "delete", "del", "recent", "volume_up",
             "menu", "volume_down", "volume_mute", "camera", "power")
         """
+
         def _inner_press(d: "uiautomator2.Device"):
             d.press(key)
 

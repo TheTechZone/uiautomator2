@@ -11,6 +11,7 @@ import uiautomator2 as u2
 @pytest.mark.skip("deprecated")
 def test_screenrecord(d: u2.Device):
     import imageio
+
     with pytest.raises(RuntimeError):
         d.screenrecord.stop()
 
@@ -29,4 +30,5 @@ def test_screenrecord(d: u2.Device):
         meta = f.get_meta_data()
         assert isinstance(meta, dict)
         from pprint import pprint
+
         pprint(meta)

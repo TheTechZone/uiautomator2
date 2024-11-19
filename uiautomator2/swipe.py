@@ -13,11 +13,13 @@ class SwipeExt(object):
         """
         self._d = d
 
-    def __call__(self,
-                 direction: Union[Direction, str],
-                 scale: float = 0.9,
-                 box: Optional[Tuple[int, int, int, int]] = None,
-                 **kwargs):
+    def __call__(
+        self,
+        direction: Union[Direction, str],
+        scale: float = 0.9,
+        box: Optional[Tuple[int, int, int, int]] = None,
+        **kwargs
+    ):
         """
         Args:
             direction (str): one of "left", "right", "up", "bottom" or Direction.LEFT
@@ -28,6 +30,7 @@ class SwipeExt(object):
         Raises:
             ValueError
         """
+
         def _swipe(_from, _to):
             self._d.swipe(_from[0], _from[1], _to[0], _to[1], **kwargs)
 
@@ -42,7 +45,7 @@ class SwipeExt(object):
         h_offset = int(width * (1 - scale)) // 2
         v_offset = int(height * (1 - scale)) // 2
 
-        center = lx + width//2, ly + height//2
+        center = lx + width // 2, ly + height // 2
         left = lx + h_offset, ly + height // 2
         up = lx + width // 2, ly + v_offset
         right = rx - h_offset, ly + height // 2
@@ -53,8 +56,8 @@ class SwipeExt(object):
         elif direction == Direction.RIGHT:
             _swipe(left, right)
         elif direction == Direction.UP:
-            _swipe(center, up) # from center to top
+            _swipe(center, up)  # from center to top
         elif direction == Direction.DOWN:
-            _swipe(center, bottom) # from center to bottom
+            _swipe(center, bottom)  # from center to bottom
         else:
             raise ValueError("Unknown direction:", direction)

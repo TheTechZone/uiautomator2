@@ -7,8 +7,10 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class Settings(object):
-    """ 赋值时会检查类型 """
+    """赋值时会检查类型"""
+
     def __init__(self, d):
         self._d = d
 
@@ -36,32 +38,38 @@ class Settings(object):
         }
         for k, v in self._defaults.items():
             if k not in self._prop_types:
-                self._prop_types[k] = (float, int) if type(v) in (float, int) else type(v)
-        
+                self._prop_types[k] = (
+                    (float, int) if type(v) in (float, int) else type(v)
+                )
+
         self._set_methods = {
-            "operation_delay": self.__set_operation_delay, 
+            "operation_delay": self.__set_operation_delay,
         }
 
         # self._get_methods = {
         #     "operation_delay": self.__get_operation_delay,
         # }
-    
+
     def __set_operation_delay(self, value: tuple):
-        """ 设置操作的(点击)的前后延时 """
+        """设置操作的(点击)的前后延时"""
         if isinstance(value, (int, float)):
             value = (value, value)
-            
+
         if isinstance(value, (list, tuple)):
             assert len(value) == 2, "operation_delay only accept list with two items"
         _pre, post = value
-        assert isinstance(_pre, (int, float)), "operation_delay can only contains int or float"
-        assert isinstance(post, (int, float)), "operation_delay can only contains int or float"
+        assert isinstance(
+            _pre, (int, float)
+        ), "operation_delay can only contains int or float"
+        assert isinstance(
+            post, (int, float)
+        ), "operation_delay can only contains int or float"
 
         self._defaults["operation_delay"] = (_pre, post)
 
     def get(self, key: str) -> Any:
         return self._defaults.get(key)
-        
+
     def _set(self, key: str, val: Any):
         # call from methods
         if key in self._set_methods:
@@ -74,7 +82,7 @@ class Settings(object):
                 reason = "{} is deprecated".format(key)
             logger.warning("d.settings[{}] deprecated: {}".format(key, reason))
             return
-        
+
         # Invalid properties
         if key not in self._prop_types:
             raise AttributeError("invalid attribute", key)
@@ -92,7 +100,7 @@ class Settings(object):
         if key not in self._defaults:
             raise RuntimeError("invalid key", key)
         return self.get(key)
-    
+
     def __repr__(self):
         return pprint.pformat(self._defaults)
         # return self._defaults

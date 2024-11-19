@@ -12,8 +12,8 @@ from uiautomator2.utils import Exists, intersect
 
 
 class Selector(dict):
-    """The class is to build parameters for UiSelector passed to Android device.
-    """
+    """The class is to build parameters for UiSelector passed to the Android device."""
+
     __fields = {
         "text": (0x01, None),  # MASK_TEXT,
         "textContains": (0x02, None),  # MASK_TEXTCONTAINS,
@@ -39,9 +39,13 @@ class Selector(dict):
         "resourceId": (0x200000, None),  # MASK_RESOURCEID,
         "resourceIdMatches": (0x400000, None),  # MASK_RESOURCEIDMATCHES,
         "index": (0x800000, 0),  # MASK_INDEX,
-        "instance": (0x01000000, 0)  # MASK_INSTANCE,
+        "instance": (0x01000000, 0),  # MASK_INSTANCE,
     }
-    __mask, __childOrSibling, __childOrSiblingSelector = "mask", "childOrSibling", "childOrSiblingSelector"
+    __mask, __childOrSibling, __childOrSiblingSelector = (
+        "mask",
+        "childOrSibling",
+        "childOrSiblingSelector",
+    )
 
     def __init__(self, **kwargs):
         super(Selector, self).__setitem__(self.__mask, 0)
@@ -51,37 +55,40 @@ class Selector(dict):
             self[k] = kwargs[k]
 
     def __str__(self):
-        """ remove useless part for easily debugger """
+        """remove useless part for easily debugger"""
         selector = self.copy()
-        selector.pop('mask')
-        for key in ('childOrSibling', 'childOrSiblingSelector'):
+        selector.pop("mask")
+        for key in ("childOrSibling", "childOrSiblingSelector"):
             if not selector.get(key):
                 selector.pop(key)
         args = []
-        for (k, v) in selector.items():
-            args.append(k + '=' + repr(v))
-        return 'Selector [' + ', '.join(args) + ']'
+        for k, v in selector.items():
+            args.append(k + "=" + repr(v))
+        return "Selector [" + ", ".join(args) + "]"
 
     def __setitem__(self, k, v):
         if k in self.__fields:
             super(Selector, self).__setitem__(k, v)
-            super(Selector,
-                  self).__setitem__(self.__mask,
-                                    self[self.__mask] | self.__fields[k][0])
+            super(Selector, self).__setitem__(
+                self.__mask, self[self.__mask] | self.__fields[k][0]
+            )
         else:
             raise ReferenceError("%s is not allowed." % k)
 
     def __delitem__(self, k):
         if k in self.__fields:
             super(Selector, self).__delitem__(k)
-            super(Selector,
-                  self).__setitem__(self.__mask,
-                                    self[self.__mask] & ~self.__fields[k][0])
+            super(Selector, self).__setitem__(
+                self.__mask, self[self.__mask] & ~self.__fields[k][0]
+            )
 
     def clone(self):
-        kwargs = dict((k, self[k]) for k in self if k not in [
-            self.__mask, self.__childOrSibling, self.__childOrSiblingSelector
-        ])
+        kwargs = dict(
+            (k, self[k])
+            for k in self
+            if k
+            not in [self.__mask, self.__childOrSibling, self.__childOrSiblingSelector]
+        )
         selector = Selector(**kwargs)
         for v in self[self.__childOrSibling]:
             selector[self.__childOrSibling].append(v)
@@ -102,9 +109,9 @@ class Selector(dict):
     def update_instance(self, i):
         # update inside child instance
         if self[self.__childOrSiblingSelector]:
-            self[self.__childOrSiblingSelector][-1]['instance'] = i
+            self[self.__childOrSiblingSelector][-1]["instance"] = i
         else:
-            self['instance'] = i
+            self["instance"] = i
 
 
 class UiObject(object):
@@ -119,21 +126,21 @@ class UiObject(object):
 
     @property
     def exists(self):
-        '''check if the object exists in current window.'''
+        """check if the object exists in current window."""
         return Exists(self)
 
     @property
     def info(self):
-        '''ui object info.'''
+        """ui object info."""
         return self.jsonrpc.objInfo(self.selector)
-    
+
     def screenshot(self, display_id: Optional[int] = None) -> Image.Image:
         im = self.session.screenshot(display_id=display_id)
         return im.crop(self.bounds())
 
     def click(self, timeout=None, offset=None):
         """
-        Click UI element. 
+        Click UI element.
 
         Args:
             timeout: seconds wait element show up
@@ -161,8 +168,13 @@ class UiObject(object):
             left_top_x, left_top_y, right_bottom_x, right_bottom_y
         """
         info = self.info
-        bounds = info.get('visibleBounds') or info.get("bounds")
-        lx, ly, rx, ry = bounds['left'], bounds['top'], bounds['right'], bounds['bottom'] # yapf: disable
+        bounds = info.get("visibleBounds") or info.get("bounds")
+        lx, ly, rx, ry = (
+            bounds["left"],
+            bounds["top"],
+            bounds["right"],
+            bounds["bottom"],
+        )  # yapf: disable
         return (lx, ly, rx, ry)
 
     def center(self, offset=(0.5, 0.5)):
@@ -223,16 +235,15 @@ class UiObject(object):
         return self.session.long_click(x, y, duration)
 
     def drag_to(self, *args, **kwargs):
-        duration = kwargs.pop('duration', 0.5)
-        timeout = kwargs.pop('timeout', None)
+        duration = kwargs.pop("duration", 0.5)
+        timeout = kwargs.pop("timeout", None)
         self.must_wait(timeout=timeout)
 
         steps = int(duration * 200)
         if len(args) >= 2 or "x" in kwargs or "y" in kwargs:
 
             def drag2xy(x, y):
-                x, y = self.session.pos_rel2abs(x,
-                                                y)  # convert percent position
+                x, y = self.session.pos_rel2abs(x, y)  # convert percent position
                 return self.jsonrpc.dragTo(self.selector, x, y, steps)
 
             return drag2xy(*args, **kwargs)
@@ -255,26 +266,31 @@ class UiObject(object):
 
         self.must_wait()
         info = self.info
-        bounds = info.get('visibleBounds') or info.get("bounds")
-        lx, ly, rx, ry = bounds['left'], bounds['top'], bounds['right'], bounds['bottom'] # yapf: disable
+        bounds = info.get("visibleBounds") or info.get("bounds")
+        lx, ly, rx, ry = (
+            bounds["left"],
+            bounds["top"],
+            bounds["right"],
+            bounds["bottom"],
+        )  # yapf: disable
         cx, cy = (lx + rx) // 2, (ly + ry) // 2
-        if direction == 'up':
+        if direction == "up":
             self.session.swipe(cx, cy, cx, ly, steps=steps)
-        elif direction == 'down':
+        elif direction == "down":
             self.session.swipe(cx, cy, cx, ry - 1, steps=steps)
-        elif direction == 'left':
+        elif direction == "left":
             self.session.swipe(cx, cy, lx, cy, steps=steps)
-        elif direction == 'right':
+        elif direction == "right":
             self.session.swipe(cx, cy, rx - 1, cy, steps=steps)
 
         # return self.jsonrpc.swipe(self.selector, direction, percent, steps)
 
     def gesture(self, start1, start2, end1, end2, steps=100):
-        '''
+        """
         perform two point gesture.
         Usage:
         d().gesture(startPoint1, startPoint2, endPoint1, endPoint2, steps)
-        '''
+        """
         rel2abs = self.session.pos_rel2abs
 
         def point(x=0, y=0):
@@ -282,7 +298,7 @@ class UiObject(object):
             return {"x": x, "y": y}
 
         def ctp(pt):
-            return point(*pt) if type(pt) == tuple else pt
+            return point(*pt) if isinstance(pt, tuple) else pt
 
         s1, s2, e1, e2 = ctp(start1), ctp(start2), ctp(end1), ctp(end2)
         return self.jsonrpc.gesture(self.selector, s1, s2, e1, e2, steps)
@@ -309,25 +325,23 @@ class UiObject(object):
         http_wait = timeout + 10
         if exists:
             try:
-                return self.jsonrpc.waitForExists(self.selector,
-                                                  int(timeout * 1000),
-                                                  http_timeout=http_wait)
+                return self.jsonrpc.waitForExists(
+                    self.selector, int(timeout * 1000), http_timeout=http_wait
+                )
             except HTTPError as e:
-                warnings.warn("waitForExists readTimeout: %s" % e,
-                              RuntimeWarning)
+                warnings.warn("waitForExists readTimeout: %s" % e, RuntimeWarning)
                 return self.exists()
         else:
             try:
-                return self.jsonrpc.waitUntilGone(self.selector,
-                                                  int(timeout * 1000),
-                                                  http_timeout=http_wait)
+                return self.jsonrpc.waitUntilGone(
+                    self.selector, int(timeout * 1000), http_timeout=http_wait
+                )
             except HTTPError as e:
-                warnings.warn("waitForExists readTimeout: %s" % e,
-                              RuntimeWarning)
+                warnings.warn("waitForExists readTimeout: %s" % e, RuntimeWarning)
                 return not self.exists()
 
     def wait_gone(self, timeout=None):
-        """ wait until ui gone
+        """wait until ui gone
         Args:
             timeout (float): wait element gone timeout
 
@@ -338,12 +352,14 @@ class UiObject(object):
         return self.wait(exists=False, timeout=timeout)
 
     def must_wait(self, exists=True, timeout=None):
-        """ wait and if not found raise UiObjectNotFoundError """
+        """wait and if not found raise UiObjectNotFoundError"""
         if not self.wait(exists, timeout):
-            raise UiObjectNotFoundError({'code': -32002, 'data': str(self.selector), 'method': 'wait'})
+            raise UiObjectNotFoundError(
+                {"code": -32002, "data": str(self.selector), "method": "wait"}
+            )
 
     def send_keys(self, text):
-        """ alias of set_text """
+        """alias of set_text"""
         return self.set_text(text)
 
     def set_text(self, text, timeout=None):
@@ -354,7 +370,7 @@ class UiObject(object):
             return self.jsonrpc.setText(self.selector, text)
 
     def get_text(self, timeout=None):
-        """ get text from field """
+        """get text from field"""
         self.must_wait(timeout=timeout)
         return self.jsonrpc.getText(self.selector)
 
@@ -373,31 +389,32 @@ class UiObject(object):
     def child_by_text(self, txt, **kwargs):
         if "allow_scroll_search" in kwargs:
             allow_scroll_search = kwargs.pop("allow_scroll_search")
-            name = self.jsonrpc.childByText(self.selector, Selector(**kwargs),
-                                            txt, allow_scroll_search)
+            name = self.jsonrpc.childByText(
+                self.selector, Selector(**kwargs), txt, allow_scroll_search
+            )
         else:
-            name = self.jsonrpc.childByText(self.selector, Selector(**kwargs),
-                                            txt)
+            name = self.jsonrpc.childByText(self.selector, Selector(**kwargs), txt)
         return UiObject(self.session, name)
 
     def child_by_description(self, txt, **kwargs):
         # need test
         if "allow_scroll_search" in kwargs:
             allow_scroll_search = kwargs.pop("allow_scroll_search")
-            name = self.jsonrpc.childByDescription(self.selector,
-                                                   Selector(**kwargs), txt,
-                                                   allow_scroll_search)
+            name = self.jsonrpc.childByDescription(
+                self.selector, Selector(**kwargs), txt, allow_scroll_search
+            )
         else:
-            name = self.jsonrpc.childByDescription(self.selector,
-                                                   Selector(**kwargs), txt)
+            name = self.jsonrpc.childByDescription(
+                self.selector, Selector(**kwargs), txt
+            )
         return UiObject(self.session, name)
 
     def child_by_instance(self, inst, **kwargs):
         # need test
         return UiObject(
             self.session,
-            self.jsonrpc.childByInstance(self.selector, Selector(**kwargs),
-                                         inst))
+            self.jsonrpc.childByInstance(self.selector, Selector(**kwargs), inst),
+        )
 
     def parent(self):
         # android-uiautomator-server not implemented
@@ -417,8 +434,8 @@ class UiObject(object):
             )
         selector = self.selector.clone()
         if instance < 0:
-            selector['instance'] = 0
-            del selector['instance']
+            selector["instance"] = 0
+            del selector["instance"]
             count = self.jsonrpc.count(selector)
             assert instance + count >= 0
             instance += count
@@ -467,14 +484,14 @@ class UiObject(object):
 
     def up(self, **kwargs):
         def above(rect1, rect2):
-            left, top, right, bottom = intersect(rect1, rect2)
+            left, _top, right, _bottom = intersect(rect1, rect2)
             return rect1["top"] - rect2["bottom"] if left < right else -1
 
         return self.__view_beside(above, **kwargs)
 
     def down(self, **kwargs):
         def under(rect1, rect2):
-            left, top, right, bottom = intersect(rect1, rect2)
+            left, _top, right, _bottom = intersect(rect1, rect2)
             return rect2["top"] - rect1["bottom"] if left < right else -1
 
         return self.__view_beside(under, **kwargs)
@@ -501,18 +518,16 @@ class UiObject(object):
         class _Fling(object):
             def __init__(self):
                 self.vertical = True
-                self.action = 'forward'
+                self.action = "forward"
 
             def __getattr__(self, key):
                 if key in ["horiz", "horizental", "horizentally"]:
                     self.vertical = False
                     return self
-                if key in ['vert', 'vertically', 'vertical']:
+                if key in ["vert", "vertically", "vertical"]:
                     self.vertical = True
                     return self
-                if key in [
-                        "forward", "backward", "toBeginning", "toEnd", "to"
-                ]:
+                if key in ["forward", "backward", "toBeginning", "toEnd", "to"]:
                     self.action = key
                     return self
                 raise ValueError("invalid prop %s" % key)
@@ -523,11 +538,9 @@ class UiObject(object):
                 elif self.action == "backward":
                     return jsonrpc.flingBackward(selector, self.vertical)
                 elif self.action == "toBeginning":
-                    return jsonrpc.flingToBeginning(selector, self.vertical,
-                                                    max_swipes)
+                    return jsonrpc.flingToBeginning(selector, self.vertical, max_swipes)
                 elif self.action == "toEnd":
-                    return jsonrpc.flingToEnd(selector, self.vertical,
-                                              max_swipes)
+                    return jsonrpc.flingToEnd(selector, self.vertical, max_swipes)
 
         return _Fling()
 
@@ -544,18 +557,16 @@ class UiObject(object):
         class _Scroll(object):
             def __init__(self):
                 self.vertical = True
-                self.action = 'forward'
+                self.action = "forward"
 
             def __getattr__(self, key):
                 if key in ["horiz", "horizental", "horizentally"]:
                     self.vertical = False
                     return self
-                if key in ['vert', 'vertically', 'vertical']:
+                if key in ["vert", "vertically", "vertical"]:
                     self.vertical = True
                     return self
-                if key in [
-                        "forward", "backward", "toBeginning", "toEnd", "to"
-                ]:
+                if key in ["forward", "backward", "toBeginning", "toEnd", "to"]:
                     self.action = key
                     return self
                 raise ValueError("invalid prop %s" % key)
@@ -563,16 +574,21 @@ class UiObject(object):
             def __call__(self, steps=SCROLL_STEPS, max_swipes=500, **kwargs):
                 # More steps slows the swipe and prevents contents from being flung too far
                 if self.action in ["forward", "backward"]:
-                    method = jsonrpc.scrollForward if self.action == "forward" else jsonrpc.scrollBackward
+                    method = (
+                        jsonrpc.scrollForward
+                        if self.action == "forward"
+                        else jsonrpc.scrollBackward
+                    )
                     return method(selector, self.vertical, steps)
                 elif self.action == "toBeginning":
-                    return jsonrpc.scrollToBeginning(selector, self.vertical,
-                                                     max_swipes, steps)
+                    return jsonrpc.scrollToBeginning(
+                        selector, self.vertical, max_swipes, steps
+                    )
                 elif self.action == "toEnd":
-                    return jsonrpc.scrollToEnd(selector, self.vertical,
-                                               max_swipes, steps)
+                    return jsonrpc.scrollToEnd(
+                        selector, self.vertical, max_swipes, steps
+                    )
                 elif self.action == "to":
-                    return jsonrpc.scrollTo(selector, Selector(**kwargs),
-                                            self.vertical)
+                    return jsonrpc.scrollTo(selector, Selector(**kwargs), self.vertical)
 
         return _Scroll()

@@ -9,8 +9,8 @@ import uiautomator2 as u2
 @pytest.fixture(scope="module")
 def d(device):
     _d = device
-    _d.settings['operation_delay'] = (0.2, 0.2)
-    _d.settings['operation_delay_methods'] = ['click', 'swipe']
+    _d.settings["operation_delay"] = (0.2, 0.2)
+    _d.settings["operation_delay_methods"] = ["click", "swipe"]
     return _d
 
 
@@ -20,9 +20,9 @@ def package_name():
 
 
 @pytest.fixture(scope="function")
-def dev(d: u2.Device, package_name) -> u2.Device: # type: ignore
+def dev(d: u2.Device, package_name) -> u2.Device:  # type: ignore
     d.watcher.reset()
-    
+
     d.app_start(package_name, stop=True)
     yield d
 
@@ -30,11 +30,11 @@ def dev(d: u2.Device, package_name) -> u2.Device: # type: ignore
 # run parallel
 # py.test --tx "3*popen" --dist=load test_device.py -q --tb=line
 
-#def read_device_list() -> list:
+# def read_device_list() -> list:
 #    return [v.serial for v in adbutils.adb.device_list()]
 
 
-#def pytest_configure(config):
+# def pytest_configure(config):
 #     # read device list if we are on the master
 #     if not hasattr(config, "slaveinput"):
 #        config.devlist = read_device_list()

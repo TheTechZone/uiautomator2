@@ -60,8 +60,7 @@ class Screenrecord:
         """
         vh, vw = framesize
         h, w = im.shape[:2]
-        frame = np.zeros((vh, vw, 3),
-                         dtype=np.uint8)  # create black background canvas
+        frame = np.zeros((vh, vw, 3), dtype=np.uint8)  # create black background canvas
         sh = vh / h
         sw = vw / w
         if sh < sw:
@@ -69,11 +68,11 @@ class Screenrecord:
         else:
             h, w = int(sw * h), vw
         left, top = (vw - w) // 2, (vh - h) // 2
-        frame[top:top + h, left:left + w, :] = cv2.resize(im, dsize=(w, h))
+        frame[top : top + h, left : left + w, :] = cv2.resize(im, dsize=(w, h))
         return frame
 
     def _pipe_resize(self, image_iter):
-        """ image to same size """
+        """image to same size"""
         firstim = next(image_iter)
         yield firstim
         vh, vw = firstim.shape[:2]

@@ -21,16 +21,16 @@ class OCR(u2OCR):
         self._client = AipOcr(self._APP_ID, self._API_KEY, self._SECRECT_KEY)
 
     def all(self):
-        img = self._d.screenshot(format='raw')
+        img = self._d.screenshot(format="raw")
         resp = self._client.general(img)  # 通用文字识别(含位置信息版)，每天 500 次免费
         result = []
-        for item in resp['words_result']:
-            left = item['location'].get('left')
-            top = item['location'].get('top')
-            width = item['location'].get('width')
-            height = item['location'].get('height')
+        for item in resp["words_result"]:
+            left = item["location"].get("left")
+            top = item["location"].get("top")
+            width = item["location"].get("width")
+            height = item["location"].get("height")
             x, y = left + width // 2, top + height // 2
-            ocr_text = item['words']
+            ocr_text = item["words"]
             result.append((ocr_text, x, y))
         result.sort(key=lambda v: (v[2], v[1]))
         # print(result)
@@ -49,7 +49,7 @@ class OCRSelector(u2OCRSelector):
 
     def all(self):
         result = []
-        for (ocr_text, x, y) in self._server.all():
+        for ocr_text, x, y in self._server.all():
             if self._exact and self._text == ocr_text:  # exactly match
                 result.append((ocr_text, x, y))
             elif self._text in ocr_text:
@@ -68,21 +68,23 @@ class OCRCustom(OCR):
         self.options = options
 
     def get_words(self):
-        img = self._d.screenshot(format='raw')
-        resp = self._client.custom(img, self.options)  # iocr财会票据文字识别(含位置信息版)，每天 500 次免费
+        img = self._d.screenshot(format="raw")
+        resp = self._client.custom(
+            img, self.options
+        )  # iocr财会票据文字识别(含位置信息版)，每天 500 次免费
         return resp
 
     def all(self):
         resp = self.get_words()
         result = []
-        for item in resp['data']['ret']:
-            left = item['location'].get('left')
-            top = item['location'].get('top')
-            width = item['location'].get('width')
-            height = item['location'].get('height')
+        for item in resp["data"]["ret"]:
+            left = item["location"].get("left")
+            top = item["location"].get("top")
+            width = item["location"].get("width")
+            height = item["location"].get("height")
             x, y = left + width // 2, top + height // 2
-            ocr_text = item['word']
-            ocr_text_name = item['word_name']
+            ocr_text = item["word"]
+            ocr_text_name = item["word_name"]
             result.append((ocr_text, x, y))
             result.append((ocr_text_name, x, y))
         result.sort(key=lambda v: (v[2], v[1]))
@@ -96,7 +98,6 @@ class OCRCustom(OCR):
         :return:
         """
         resp = self.get_words()
-        for item in resp['data']['ret']:
-            if item['word_name'] == option:
-                return item['word']
-
+        for item in resp["data"]["ret"]:
+            if item["word_name"] == option:
+                return item["word"]

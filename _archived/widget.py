@@ -33,7 +33,7 @@ def xml2nodes(xml_content: Union[str, bytes]):
             if len(bounds) != 4:
                 continue
             lx, ly, rx, ry = map(int, bounds)
-            attrib['size'] = (rx - lx, ry - ly)
+            attrib["size"] = (rx - lx, ry - ly)
         attrib.pop("index", None)
 
         ok = False
@@ -45,7 +45,7 @@ def xml2nodes(xml_content: Union[str, bytes]):
             items = []
             for k, v in sorted(attrib.items()):
                 items.append(k + ":" + str(v))
-            nodes.append('|'.join(items))
+            nodes.append("|".join(items))
     return nodes
 
 
@@ -54,11 +54,13 @@ def hierarchy_sim(xml1: str, xml2: str):
     ns2 = xml2nodes(xml2)
 
     from collections import Counter
+
     c1 = Counter(ns1)
     c2 = Counter(ns2)
 
     same_count = sum(
-        [min(c1[k], c2[k]) for k in set(c1.keys()).intersection(c2.keys())])
+        [min(c1[k], c2[k]) for k in set(c1.keys()).intersection(c2.keys())]
+    )
     logger.debug("Same count: %d ns1: %d ns2: %d", same_count, len(ns1), len(ns2))
     return same_count / (len(ns1) + len(ns2)) * 2
 
@@ -76,11 +78,11 @@ def frozendict(d: dict):
     items = []
     for k, v in sorted(d.items()):
         items.append(k + ":" + str(v))
-    return '|'.join(items)
+    return "|".join(items)
 
 
 CompareResult = namedtuple("CompareResult", ["score", "detail"])
-Point = namedtuple("Point", ['x', 'y'])
+Point = namedtuple("Point", ["x", "y"])
 
 
 class Widget(object):
@@ -97,7 +99,7 @@ class Widget(object):
 
     @property
     def wait_timeout(self):
-        return self._d.settings['wait_timeout']
+        return self._d.settings["wait_timeout"]
 
     def _get_widget(self, id: str):
         if id in self._widgets:
@@ -110,7 +112,8 @@ class Widget(object):
 
     def _id2url(self, id: str):
         fields = re.sub("#.*", "", id).split(
-            "/")  # remove chars after # and split host and id
+            "/"
+        )  # remove chars after # and split host and id
         assert len(fields) <= 2
         if len(fields) == 1:
             return f"http://localhost:17310/api/v1/widgets/{id}"
@@ -142,7 +145,7 @@ class Widget(object):
         Args:
             node_a, node_b: etree.Element
             size_a, size_b: tuple size
-        
+
         Returns:
             CompareResult
         """
@@ -154,10 +157,10 @@ class Widget(object):
 
         # max 1
         if node_a.tag == node_b.tag:
-            scores['class'] = 1
+            scores["class"] = 1
 
         # max 3
-        for key in ('text', 'resource-id', 'content-desc'):
+        for key in ("text", "resource-id", "content-desc"):
             if node_a.attrib.get(key) == node_b.attrib.get(key):
                 scores[key] = 1 if node_a.attrib.get(key) else 0.1
 
@@ -169,26 +172,31 @@ class Widget(object):
         # max 2
         peq = partial(self._percent_equal, 1 / 20, asize=size_a, bsize=size_b)
         if peq(ax, bx) and peq(ay, by):
-            scores['left_top'] = 1
+            scores["left_top"] = 1
         if peq(aw, bw) and peq(ah, bh):
-            scores['size'] = 1
+            scores["size"] = 1
 
         score = round(sum(scores.values()), 1)
-        result = self._compare_results[result_key] = CompareResult(
-            score, scores)
+        result = self._compare_results[result_key] = CompareResult(score, scores)
         return result
 
     def node2string(self, node: etree.Element):
-        return node.tag + ":" + '|'.join([
-            node.attrib.get(key, "")
-            for key in ["text", "resource-id", "content-desc"]
-        ])
+        return (
+            node.tag
+            + ":"
+            + "|".join(
+                [
+                    node.attrib.get(key, "")
+                    for key in ["text", "resource-id", "content-desc"]
+                ]
+            )
+        )
 
     def hybird_compare_node(self, node_a, node_b, size_a, size_b):
         """
         Returns:
             (scores, results)
-        
+
         Return example:
             【3.0, 3.2], [CompareResult(score=3.0), CompareResult(score=3.2)]
         """
@@ -232,16 +240,15 @@ class Widget(object):
         results = {}
         for node2 in root.xpath("/hierarchy//*"):
             result = self.hybird_compare_node(node, node2, node_wsize, root_wsize)
-            results[node2] = result  #score
+            results[node2] = result  # score
         return results
 
     def etree_fromstring(self, s: str):
-        root = etree.fromstring(s.encode('utf-8'))
+        root = etree.fromstring(s.encode("utf-8"))
         return self.replace_etree_node_to_class(root)
 
     def node_center_point(self, node) -> Point:
-        lx, ly, rx, ry = map(int, re.findall(r"\d+",
-                                             node.attrib.get("bounds")))
+        lx, ly, rx, ry = map(int, re.findall(r"\d+", node.attrib.get("bounds")))
         return Point((lx + rx) // 2, (ly + ry) // 2)
 
     def match(self, widget: dict, hierarchy=None, window_size: tuple = None):
@@ -258,23 +265,27 @@ class Widget(object):
         hierarchy = hierarchy or self._d.dump_hierarchy()
         w = widget.copy()
 
-        widget_root = self.etree_fromstring(w['hierarchy'])
-        widget_node = widget_root.xpath(w['xpath'])[0]
+        widget_root = self.etree_fromstring(w["hierarchy"])
+        widget_node = widget_root.xpath(w["xpath"])[0]
 
         # 节点打分
         target_root = self.etree_fromstring(hierarchy)
-        results = self.compare_hierarchy(widget_node, target_root, w['window_size'], window_size) # yapf: disable
+        results = self.compare_hierarchy(
+            widget_node, target_root, w["window_size"], window_size
+        )  # yapf: disable
 
         # score结构调整
         scores = {}
         for node, result in results.items():
-            scores[node] = self._hybird_result_to_score(result) # score eg: [3.2, 2.2, [1.0, 1.2]]
+            scores[node] = self._hybird_result_to_score(
+                result
+            )  # score eg: [3.2, 2.2, [1.0, 1.2]]
 
         # 打分排序
         nodes = list(scores.keys())
         nodes.sort(key=lambda n: scores[n], reverse=True)
         possible_nodes = nodes[:10]
-        
+
         # compare image
         # screenshot = self._d.screenshot()
         # for node in possible_nodes:
@@ -293,14 +304,15 @@ class Widget(object):
         first, second = nodes[:2]
 
         MatchResult = namedtuple(
-            "MatchResult",
-            ["point", "score", "detail", "xpath", "node", "next_result"])
+            "MatchResult", ["point", "score", "detail", "xpath", "node", "next_result"]
+        )
 
         def get_result(node, next_result=None):
             point = self.node_center_point(node)
             xpath = node.getroottree().getpath(node)
-            return MatchResult(point, scores[node], results[node], xpath,
-                               node, next_result)
+            return MatchResult(
+                point, scores[node], results[node], xpath, node, next_result
+            )
 
         return get_result(first, get_result(second))
 
@@ -321,19 +333,25 @@ class Widget(object):
             None or Result
         """
         timeout = timeout or self.wait_timeout
-        widget = self._get_widget(id) # 获取节点信息
+        widget = self._get_widget(id)  # 获取节点信息
 
         begin_time = time.time()
         deadline = time.time() + timeout
 
         while time.time() < deadline:
             hierarchy = self._d.dump_hierarchy()
-            hsim = hierarchy_sim(hierarchy, widget['hierarchy'])
+            hsim = hierarchy_sim(hierarchy, widget["hierarchy"])
 
             app = self._d.app_current()
-            is_same_activity = widget['activity'] == app['activity']
+            is_same_activity = widget["activity"] == app["activity"]
             if not is_same_activity:
-                print("activity different:", "got", app['activity'], 'expect', widget['activity'])
+                print(
+                    "activity different:",
+                    "got",
+                    app["activity"],
+                    "expect",
+                    widget["activity"],
+                )
             print("hierarchy: %.1f%%" % hsim)
             print("----------------------")
 
@@ -436,9 +454,8 @@ def main():
     show_click_position(d, result.point)
     return
 
-    root = etree.parse(
-        '/Users/shengxiang/Projects/weditor/widgets/00010/hierarchy.xml')
-    nodes = root.xpath('/hierarchy/node/node/node/node')
+    root = etree.parse("/Users/shengxiang/Projects/weditor/widgets/00010/hierarchy.xml")
+    nodes = root.xpath("/hierarchy/node/node/node/node")
     a, b = nodes[0], nodes[1]
     result = d.widget.hybird_compare_node(a, b, wsize, wsize)
     pprint(result)

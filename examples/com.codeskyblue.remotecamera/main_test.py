@@ -2,7 +2,7 @@
 
 import uiautomator2 as u2
 
-pkg_name = 'com.codeskyblue.remotecamera'
+pkg_name = "com.codeskyblue.remotecamera"
 d = u2.connect()
 
 
@@ -12,4 +12,3 @@ def setup_function():
 
 def test_simple():
     assert d(text="Hello World!").exists
-

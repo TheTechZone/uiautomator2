@@ -4,11 +4,23 @@
 """Created on Thu Apr 04 2024 16:41:25 by codeskyblue
 """
 
-import pytest
 from unittest.mock import Mock
-from PIL import Image
-from uiautomator2.xpath import XMLElement, XPath, XPathSelector, XPathEntry, XPathElementNotFoundError, convert_to_camel_case, is_xpath_syntax_ok, safe_xmlstr, str2bytes, strict_xpath
 
+import pytest
+from PIL import Image
+
+from uiautomator2.xpath import (
+    XMLElement,
+    XPath,
+    XPathElementNotFoundError,
+    XPathEntry,
+    XPathSelector,
+    convert_to_camel_case,
+    is_xpath_syntax_ok,
+    safe_xmlstr,
+    str2bytes,
+    strict_xpath,
+)
 
 mock = Mock()
 mock.screenshot.return_value = Image.new("RGB", (1080, 1920), "white")
@@ -27,16 +39,16 @@ x = XPathEntry(mock)
 
 def test_safe_xmlstr():
     for input, expect in [
-        ('android.widget.TextView', 'android.widget.TextView'),
-        ('test$123', 'test.123'),
-        ('$@#&123.456$', '123.456'),
+        ("android.widget.TextView", "android.widget.TextView"),
+        ("test$123", "test.123"),
+        ("$@#&123.456$", "123.456"),
     ]:
         assert safe_xmlstr(input) == expect
 
 
 def test_str2bytes():
-    assert str2bytes(b'123') == b'123'
-    assert str2bytes('123') == b'123'
+    assert str2bytes(b"123") == b"123"
+    assert str2bytes("123") == b"123"
 
 
 def test_is_xpath_syntax_ok():
@@ -51,12 +63,12 @@ def test_convert_to_camel_case():
 
 
 def test_strict_xpath():
-    for (input, expect) in [
+    for input, expect in [
         ("@n1", "//*[@resource-id='n1']"),
         ("//TextView", "//TextView"),
         ("//TextView[@text='n1']", "//TextView[@text='n1']"),
         ("(//TextView)[2]", "(//TextView)[2]"),
-        ("//TextView/", "//TextView"), # test rstrip /
+        ("//TextView/", "//TextView"),  # test rstrip /
     ]:
         assert strict_xpath(input) == expect
 
@@ -65,7 +77,6 @@ def test_XPath():
     xp = XPath("//TextView")
     assert xp == "//TextView"
     assert xp.joinpath("/n1") == "//TextView/n1"
-
 
 
 def test_xpath_selector():
@@ -84,7 +95,7 @@ def test_xpath_selector():
 
 def test_xpath_with_instance():
     # issue: https://github.com/openatx/uiautomator2/issues/941
-    el = x('(//TextView)[2]').get(0)
+    el = x("(//TextView)[2]").get(0)
     assert el.text == "n2"
 
 
@@ -96,9 +107,9 @@ def test_xpath_click():
     mock.click.reset_mock()
     assert x("n1").click_exists() == True
     assert mock.click.call_args[0] == (540, 50)
-    
+
     mock.click.reset_mock()
-    assert x("n3").click_exists(timeout=.1) == False
+    assert x("n3").click_exists(timeout=0.1) == False
     assert not mock.click.called
 
 
@@ -109,10 +120,10 @@ def test_xpath_exists():
 
 def test_xpath_wait_and_wait_gone():
     assert x("n1").wait() is True
-    assert x("n3").wait(timeout=.1) is False
+    assert x("n3").wait(timeout=0.1) is False
 
-    assert x("n3").wait_gone(timeout=.1) is True
-    assert x("n1").wait_gone(timeout=.1) is False
+    assert x("n3").wait_gone(timeout=0.1) is True
+    assert x("n1").wait_gone(timeout=0.1) is False
 
 
 def test_xpath_get():
@@ -120,7 +131,7 @@ def test_xpath_get():
     assert x("n2").get().text == "n2"
 
     with pytest.raises(XPathElementNotFoundError):
-        x("n3").get(timeout=.1)
+        x("n3").get(timeout=0.1)
 
 
 def test_xpath_all():
@@ -144,7 +155,7 @@ def test_xpath_element():
     assert el.rect == (0, 0, 1080, 100)
     assert isinstance(el.info, dict)
     assert el.get_xpath(strip_index=True) == "/hierarchy/FrameLayout/TextView"
-    
+
     mock.click.reset_mock()
     el.click()
     assert mock.click.called
@@ -158,5 +169,3 @@ def test_xpath_element():
     mock.swipe.reset_mock()
     el.swipe("up")
     assert mock.swipe.called
-
-

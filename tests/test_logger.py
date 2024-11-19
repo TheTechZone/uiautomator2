@@ -5,13 +5,15 @@
 """
 
 import logging
+
 import pytest
+
 from uiautomator2 import enable_pretty_logging
 
 
 def test_enable_pretty_logging(caplog: pytest.LogCaptureFixture):
     logger = logging.getLogger("uiautomator2")
-    
+
     logger.info("should not be printed")
     enable_pretty_logging()
     logger.info("hello")
