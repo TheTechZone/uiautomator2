@@ -16,7 +16,7 @@ poetry run uiautomator2 console
 
 
 ## ViewConfiguration
-Default configuration can retrived from [/android/view/ViewConfiguration.java](https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/ViewConfiguration.java)
+Default configuration can be retrieved from [/android/view/ViewConfiguration.java](https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/ViewConfiguration.java)
 
 > Unit: ms
 

@@ -1,107 +1,113 @@
-# QUICK REFENRECE GUIDE
+# QUICK REFERENCE GUIDE
 
 ```python
 import uiautomator2 as u2
 
-d = u2.connect("--serial-here--") # 只有一个设备也可以省略参数
-d = u2.connect() # 一个设备时, read env-var ANDROID_SERIAL
+d = u2.connect("--serial-here--")  # Can omit parameter if there's only one device
+d = u2.connect()  # Uses ANDROID_SERIAL env var if single device
 
-# 信息获取
-print(d.info)
-print(d.device_info)
-width, height = d.window_size()
-print(d.wlan_ip)
-print(d.serial)
+# Device Information
+print(d.info)  # Get device info
+print(d.device_info)  # Get detailed device info
+width, height = d.window_size()  # Get screen dimensions
+print(d.wlan_ip)  # Get wireless IP
+print(d.serial)  # Get device serial number
 
-## 截图
-d.screenshot() # Pillow.Image.Image格式
-d.screenshot().save("current_screen.jpg")
+# Screen Operations
+d.screenshot()  # Returns Pillow.Image.Image
+d.screenshot().save("current_screen.jpg")  # Save screenshot
 
-# 获取hierarchy
-d.dump_hierarchy() # str
+# UI Hierarchy
+d.dump_hierarchy()  # Returns hierarchy as XML string
 
-# 设置查找元素等待时间，单位秒
-d.implicitly_wait(10)
+# Wait Settings
+d.implicitly_wait(10)  # Set element search timeout (seconds)
 
-d.app_current() # 获取前台应用 packageName, activity
-d.app_start("io.appium.android.apis") # 启动应用
-d.app_start("io.appium.android.apis", stop=True) # 启动应用前停止应用
-d.app_stop("io.appium.android.apis") # 停止应用
+# App Management
+d.app_current()  # Get current app's packageName and activity
+d.app_start("io.appium.android.apis")  # Launch app
+d.app_start("io.appium.android.apis", stop=True)  # Stop then launch app
+d.app_stop("io.appium.android.apis")  # Stop app
 
-app = d.session("io.appium.android.apis") # 启动应用并获取session
+# Session Management
+app = d.session("io.appium.android.apis")  # Start app session
+# Sessions monitor app crashes - throws SessionBrokenError if app crashes
+app.click(10, 20)  # Click coordinates in session
 
-# session的用途是操作的同时监控应用是否闪退，当闪退时操作，会抛出SessionBrokenError
-app.click(10, 20) # 坐标点击
+# Touch Actions (No Session)
+d.click(10, 20)  # Click coordinates
+d.long_click(10, 10)  # Long press
+d.double_click(10, 20)  # Double click
 
-# 无session状态下操作
-d.click(10, 20) # 坐标点击
-d.long_click(10, 10)
-d.double_click(10, 20)
+# Gesture Actions
+d.swipe(10, 20, 80, 90)  # Swipe from (10,20) to (80,90)
+d.swipe_ext("right")  # Full screen swipe right
+d.swipe_ext("right", scale=0.9)  # Swipe right 90% of screen width
+d.drag(10, 10, 80, 80)  # Drag operation
 
-d.swipe(10, 20, 80, 90) # 从(10, 20)滑动到(80, 90)
-d.swipe_ext("right") # 整个屏幕右滑动
-d.swipe_ext("right", scale=0.9) # 屏幕右滑，滑动距离为屏幕宽度的90%
-d.drag(10, 10, 80, 80)
+# System Keys
+d.press("back")  # Press back button
+d.press("home")  # Press home button
+d.long_press("volume_up")  # Long press volume up
 
-d.press("back") # 模拟点击返回键
-d.press("home") # 模拟Home键
-d.long_press("volume_up")
+# Text Input
+d.send_keys("hello world")  # Type text (requires active input field)
+d.clear_text()  # Clear input field
 
-d.send_keys("hello world") # 模拟输入，需要光标已经在输入框中才可以
-d.clear_text() # 清空输入框
+# Screen Control
+d.screen_on()  # Wake up device
+d.screen_off()  # Sleep device
 
-d.screen_on() # wakeUp
-d.screen_off() # sleep screen
+# Screen Orientation
+print(d.orientation)  # Get orientation (left|right|natural|upsidedown)
+d.orientation = 'natural'  # Set orientation
+d.freeze_rotation(True)  # Lock rotation
 
-print(d.orientation) # left|right|natural|upsidedown
-d.orientation = 'natural'
-d.freeze_rotation(True)
+# System UI
+print(d.last_toast)  # Get last toast message
+d.clear_toast()  # Clear toast history
 
-print(d.last_toast) # 获取显示的toast文本
-d.clear_toast() # 重置一下
+d.open_notification()  # Open notification panel
+d.open_quick_settings()  # Open quick settings
 
-d.open_notification()
-d.open_quick_settings()
+d.open_url("https://www.bing.com")  # Open URL
+d.keyevent("HOME")  # Send keyevent
 
-d.open_url("https://www.baidu.com")
-d.keyevent("HOME") # same as: input keyevent HOME
+# Shell Commands
+output, exit_code = d.shell("ps -A", timeout=60)  # Execute shell command
+output = d.shell("pwd").output  # Get command output
+exit_code = d.shell("pwd").exit_code  # Get exit code
 
-# 执行shell命令
-output, exit_code = d.shell("ps -A", timeout=60) # 执行shell命令，获取输出和exitCode
-output = d.shell("pwd").output # 这样也可以
-exit_code = d.shell("pwd").exit_code # 这样也可以
-
-# Selector操作
-sel = d(text="Gmail")
-sel.wait()
-sel.click()
-
+# Selector Operations
+sel = d(text="Gmail")  # Create selector
+sel.wait()  # Wait for element
+sel.click()  # Click element
 ```
 
 ```python
-# XPath操作
-# 元素操作
-d.xpath("立即开户").wait() # 等待元素，最长等10s（默认）
-d.xpath("立即开户").wait(timeout=10) # 修改默认等待时间
+# XPath Operations
+d.xpath("Open Account").wait()  # Wait for element (default 10s)
+d.xpath("Open Account").wait(timeout=10)  # Custom timeout
 
-# 常用配置
-d.settings['wait_timeout'] = 20 # 控件查找默认等待时间(默认20s)
+# Common Settings
+d.settings['wait_timeout'] = 20  # Default element search timeout (20s)
 
-d.xpath("立即开户").click() # 包含查找等待+点击操作，匹配text或者description等于立即开户的按钮
-d.xpath("//*[@text='私人FM']/../android.widget.ImageView").click()
+# Complex XPath Operations
+d.xpath("Open Account").click()  # Wait and click
+d.xpath("//*[@text='FM']/../android.widget.ImageView").click()  # Complex path
+d.xpath('//*[@text="FM"]').get().info  # Get element info
 
-d.xpath('//*[@text="私人FM"]').get().info # 获取控件信息
-
+# Element Collection Operations
 for el in d.xpath('//android.widget.EditText').all():
-    print("rect:", el.rect) # output tuple: (left_x, top_y, width, height)
-    print("bounds:", el.bounds) # output tuple: （left, top, right, bottom)
-    print("center:", el.center())
-    el.click() # click operation
-    print(el.elem) # 输出lxml解析出来的Node
+    print("rect:", el.rect)  # (left_x, top_y, width, height)
+    print("bounds:", el.bounds)  # (left, top, right, bottom)
+    print("center:", el.center())  # Get center coordinates
+    el.click()  # Click element
+    print(el.elem)  # Print lxml Node
 
-# 监控弹窗(在线程中监控)
-d.watcher.when("跳过").click()
-d.watcher.start()
+# Watcher (Monitor popups in thread)
+d.watcher.when("Skip").click()  # Set up watcher
+d.watcher.start()  # Start watching
 ```
 
-**欢迎多提意见。更欢迎Pull Request**
+**More comments are welcome. Pull Requests are more than welcome**
