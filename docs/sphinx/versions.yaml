@@ -1,0 +1,11 @@
+# dummy data
+"1.0":
+  tag: '1.0'
+  languages:
+    - "en"
+    - "zh_cn"
+"2.0":
+  tag: '2.0'
+  languages:
+    - "en"
+    - "zh_cn"

@@ -8,13 +8,13 @@ Welcome to uiautomator2's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: 常用接口
+   :caption: Common interfaces
 
    api
 
 .. toctree::
    :maxdepth: 2
-   :caption: 全部接口
+   :caption: All interfaces
 
    uiautomator2
 
