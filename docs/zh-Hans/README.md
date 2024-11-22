@@ -8,7 +8,7 @@ Discord: <https://discord.gg/PbJhnZJKDd>
 
 > 有段时间没有维护这个项目了（可能有两年了），但是最近工作需要又重新研究一下Android原生自动化，当然又调研了Appium，对比下来一看，发现uiautomator2这个项目的运行速度是真的好快，从检测元素到点击，都是毫秒级的，代码也比较好理解。真是没想到以前竟然写出了这么神奇的项目，这么好的项目怎么能让它落灰呢，得好好整一整，一些垃圾代码清理清理。所以项目版本从2.x.x升级到了3.x.x
 
-还在用2.x.x版本的用户，可以先看一下[2to3](docs/2to3.md) 再决定是否要升级3.x.x （我个人还是非常建议升级的）
+还在用2.x.x版本的用户，可以先看一下[2to3](2to3.md) 再决定是否要升级3.x.x （我个人还是非常建议升级的）
 
 2到3毕竟是大版本升级，很多的函数删掉了。首先删掉的就是atx-agent，其次还有一堆atx-agent相关的函数。废弃的功能比如init.
 
@@ -38,7 +38,7 @@ Discord: <https://discord.gg/PbJhnZJKDd>
 
 > PS: 这个库 ~~<https://github.com/NeteaseGame/ATX>~~ 目前已经不维护了，请尽快更换。
 
-这里有一份快速参考，适合已经入门的人 [QUICK REFERENCE GUIDE](./QUICK_REFERENCE.zh-Hans)，欢迎多提意见。
+这里有一份快速参考，适合已经入门的人 [QUICK REFERENCE GUIDE](QUICK_REFERENCE.md)，欢迎多提意见。
 
 ## Requirements
 - Android版本 4.4+
@@ -1204,7 +1204,7 @@ d.watcher.stop()
 d.watcher.reset()
 ```
 
-另外文档还是有很多没有写，推荐直接去看源码[watcher.py](uiautomator2/watcher.py)
+另外文档还是有很多没有写，推荐直接去看源码[watcher.py](../../uiautomator2/watcher.py)
 
 ### Global settings
 
@@ -1443,4 +1443,4 @@ Other [contributors](../../graphs/contributors)
 排名有先后，欢迎补充
 
 # LICENSE
-[MIT](LICENSE)
+[MIT](../../LICENSE)

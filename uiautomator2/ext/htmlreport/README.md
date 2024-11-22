@@ -21,7 +21,7 @@ u(text="Github").click() # will also record
 ```
 
 ## Screenshot
-![Alt](../../../docs/img/htmlreport.png)
+![Alt](../../../docs/sphinx/img/htmlreport.png)
 
 ## LICENSE
 MIT

@@ -35,7 +35,7 @@ In addition to fixing the bugs in the original library, many new features have b
 
 > PS: This library [~~https://github.com/NeteaseGame/ATX is~~](https://github.com/NeteaseGame/ATX) currently out of maintenance, please switch to it as soon as possible.
 
-Here is a [quick reference guide for](./QUICK_REFERENCE.md) those who are already getting started. Please give us your comments.
+Here is a [quick reference guide for](QUICK_REFERENCE.md) those who are already getting started. Please give us your comments.
 ## Requirements
 - Android version 4.4+
 - Python 3.8+
@@ -1151,7 +1151,7 @@ d.watcher.stop()
 d.watcher.reset()
 ```
 
-In addition, there are still many documents [uiautomator2/watcher.py](uiautomator2/watcher.py) that are not written. It is recommended to go directly to the source of watcher.py
+In addition, there are still many documents [uiautomator2/watcher.py](../../uiautomator2/watcher.py) that are not written. It is recommended to go directly to the source of watcher.py
 
 ### Global settings
 
@@ -1297,7 +1297,7 @@ for elem in d.xpath("//android.widget.TextView").all():
     print("Position:", elem.center())
 ```
 
-Click [to view other](./XPATH.md) common uses of XPath
+Click [to view other](XPATH.md) common uses of XPath
 
 ### Screenrecord (Deprecated)
 Video recording (deprecated), use [scrcpy instead](https://github.com/Genymobile/scrcpy)!
@@ -1389,4 +1389,4 @@ Other [contributors](../../graphs/contributors)
 
 The ranking is in order, welcome to add
 # LICENSE
-[MIT](LICENSE)
+[MIT](../../LICENSE)
